@@ -9,7 +9,12 @@ import (
 )
 
 type Publisher interface {
-	Publish(ctx context.Context, topic string, message []byte) error
+	Publish(ctx context.Context, msg PublishRequest) error
+}
+
+type PublishRequest struct {
+	Topic   string
+	Message []byte
 }
 
 type Subscriber interface {

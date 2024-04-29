@@ -31,6 +31,8 @@ type googleClient struct {
 	metrics Metrics
 }
 
+var _ pubsub.Publisher = (*googleClient)(nil)
+
 //nolint:revive // We do not want anyone using the client without initialization steps.
 func New(conf Config, logger pubsub.Logger, metrics Metrics) *googleClient {
 	err := validateConfigs(&conf)
@@ -69,31 +71,31 @@ func validateConfigs(conf *Config) error {
 	return nil
 }
 
-func (g *googleClient) Publish(ctx context.Context, topic string, message []byte) error {
-	g.metrics.IncrementCounter(ctx, "app_pubsub_publish_total_count", "topic", topic)
+func (g *googleClient) Publish(ctx context.Context, message pubsub.PublishRequest) error {
+	g.metrics.IncrementCounter(ctx, "app_pubsub_publish_total_count", "topic", message.Topic)
 
-	t, err := g.getTopic(ctx, topic)
+	t, err := g.getTopic(ctx, message.Topic)
 	if err != nil {
-		g.logger.Errorf("error creating %s err: %v", topic, err)
+		g.logger.Errorf("error creating %s err: %v", message.Topic, err)
 
 		return err
 	}
 
 	result := t.Publish(ctx, &gcPubSub.Message{
-		Data:        message,
+		Data:        message.Message,
 		PublishTime: time.Now(),
 	})
 
 	_, err = result.Get(ctx)
 	if err != nil {
-		g.logger.Errorf("error publishing to google topic %s err: %v", topic, err)
+		g.logger.Errorf("error publishing to google topic %s err: %v", message.Topic, err)
 
 		return err
 	}
 
-	g.logger.Debugf("published google message %v on topic %v", string(message), topic)
+	g.logger.Debugf("published google message %v on topic %v", string(message.Message), message.Topic)
 
-	g.metrics.IncrementCounter(ctx, "app_pubsub_publish_success_count", "topic", topic)
+	g.metrics.IncrementCounter(ctx, "app_pubsub_publish_success_count", "topic", message.Topic)
 
 	return nil
 }

@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"gofr.dev/pkg/gofr/datasource/pubsub"
 	"gofr.dev/pkg/gofr/testutil"
 )
 
@@ -76,7 +77,7 @@ func TestGoogleClient_Publish_Success(t *testing.T) {
 		mockMetrics.EXPECT().IncrementCounter(context.Background(), "app_pubsub_publish_total_count", "topic", topic)
 		mockMetrics.EXPECT().IncrementCounter(context.Background(), "app_pubsub_publish_success_count", "topic", topic)
 
-		err := g.Publish(context.Background(), topic, message)
+		err := g.Publish(context.Background(), pubsub.PublishRequest{Topic: topic, Message: message})
 
 		assert.Nil(t, err)
 	})
@@ -102,7 +103,7 @@ func TestGoogleClient_PublishTopic_Error(t *testing.T) {
 
 	mockMetrics.EXPECT().IncrementCounter(ctx, "app_pubsub_publish_total_count", "topic", "test-topic")
 
-	err := g.Publish(ctx, "test-topic", []byte(""))
+	err := g.Publish(ctx, pubsub.PublishRequest{Topic: "test-topic", Message: []byte("")})
 	if assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "context canceled")
 	}

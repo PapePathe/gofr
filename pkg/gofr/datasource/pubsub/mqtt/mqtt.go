@@ -186,10 +186,10 @@ func (m *MQTT) Subscribe(ctx context.Context, topic string) (*pubsub.Message, er
 	return <-msgChan, nil
 }
 
-func (m *MQTT) Publish(ctx context.Context, topic string, message []byte) error {
-	m.metrics.IncrementCounter(ctx, "app_pubsub_publish_total_count", "topic", topic)
+func (m *MQTT) Publish(ctx context.Context, message pubsub.PublishRequest) error {
+	m.metrics.IncrementCounter(ctx, "app_pubsub_publish_total_count", "topic", message.Topic)
 
-	token := m.Client.Publish(topic, m.config.QoS, m.config.RetrieveRetained, message)
+	token := m.Client.Publish(message.Topic, m.config.QoS, m.config.RetrieveRetained, message.Message)
 
 	// Check for errors during publishing (More on error reporting
 	// https://pkg.go.dev/github.com/eclipse/paho.mqtt.golang#readme-error-handling)
@@ -199,9 +199,9 @@ func (m *MQTT) Publish(ctx context.Context, topic string, message []byte) error 
 		return token.Error()
 	}
 
-	m.logger.Debugf("published  message %v on topic %v", string(message), topic)
+	m.logger.Debugf("published  message %v on topic %v", string(message.Message), message.Topic)
 
-	m.metrics.IncrementCounter(ctx, "app_pubsub_publish_success_count", "topic", topic)
+	m.metrics.IncrementCounter(ctx, "app_pubsub_publish_success_count", "topic", message.Topic)
 
 	return nil
 }

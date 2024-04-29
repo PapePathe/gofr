@@ -46,7 +46,7 @@ func (m *MockPubSub) Health() datasource.Health {
 	return datasource.Health{}
 }
 
-func (m *MockPubSub) Publish(_ context.Context, _ string, _ []byte) error {
+func (m *MockPubSub) Publish(_ context.Context, _ pubsub.PublishRequest) error {
 	return nil
 }
 
