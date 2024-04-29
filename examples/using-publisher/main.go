@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+
 	"gofr.dev/pkg/gofr"
+	"gofr.dev/pkg/gofr/datasource/pubsub"
 )
 
 func main() {
@@ -30,7 +32,7 @@ func order(ctx *gofr.Context) (interface{}, error) {
 
 	msg, _ := json.Marshal(data)
 
-	err = ctx.GetPublisher().Publish(ctx, "order-logs", msg)
+	err = ctx.GetPublisher().Publish(ctx, pubsub.PublishRequest{Topic: "order-logs", Message: msg})
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +55,7 @@ func product(ctx *gofr.Context) (interface{}, error) {
 
 	msg, _ := json.Marshal(data)
 
-	err = ctx.GetPublisher().Publish(ctx, "products", msg)
+	err = ctx.GetPublisher().Publish(ctx, pubsub.PublishRequest{ Topic: "products", Message: msg})
 	if err != nil {
 		return nil, err
 	}

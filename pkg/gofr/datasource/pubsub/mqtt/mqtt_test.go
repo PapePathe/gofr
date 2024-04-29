@@ -107,7 +107,7 @@ func TestMQTT_Disconnect(t *testing.T) {
 	// Disconnect the broker and then try to publish
 	client.Disconnect(1)
 
-	err := client.Publish(ctx, "test", []byte("hello"))
+	err := client.Publish(ctx, pubsub.PublishRequest{Topic: "test", Message: []byte(`hello world`)})
 	assert.NotNil(t, err)
 	assert.Equal(t, "not Connected", err.Error())
 }
@@ -125,7 +125,7 @@ func TestMQTT_PublishSuccess(t *testing.T) {
 
 	m := New(&Config{}, testutil.NewMockLogger(testutil.FATALLOG), mockMetrics)
 
-	err := m.Publish(ctx, "test/topic", []byte(`hello world`))
+	err := m.Publish(ctx, pubsub.PublishRequest{Topic: "test/topic", Message: []byte(`hello world`)})
 
 	assert.Nil(t, err)
 }
@@ -146,7 +146,7 @@ func TestMQTT_PublishFailure(t *testing.T) {
 
 		// Disconnect the client
 		m.Client.Disconnect(1)
-		err := m.Publish(ctx, "test/topic", []byte(`hello world`))
+		err := m.Publish(ctx, pubsub.PublishRequest{Topic: "test/topic", Message: []byte(`hello world`)})
 
 		assert.NotNil(t, err)
 	})
@@ -190,7 +190,7 @@ func TestMQTT_SubscribeSuccess(t *testing.T) {
 		assert.Nil(t, err)
 	}()
 
-	_ = m.Publish(ctx, "test/topic", []byte("hello world"))
+	_ = m.Publish(ctx, pubsub.PublishRequest{Topic: "test/topic", Message: []byte("hello world")})
 
 	wg.Wait()
 }

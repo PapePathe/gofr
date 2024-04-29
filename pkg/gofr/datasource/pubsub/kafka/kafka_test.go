@@ -88,7 +88,7 @@ func TestKafkaClient_PublishError(t *testing.T) {
 
 			mockMetrics.EXPECT().IncrementCounter(ctx, "app_pubsub_publish_total_count", "topic", tc.topic)
 
-			err = tc.client.Publish(ctx, tc.topic, tc.msg)
+			err = tc.client.Publish(ctx, pubsub.PublishRequest{Topic: tc.topic, Message: tc.msg})
 		}
 
 		logs := testutil.StderrOutputForFunc(testFunc)
@@ -117,7 +117,7 @@ func TestKafkaClient_Publish(t *testing.T) {
 		mockMetrics.EXPECT().IncrementCounter(ctx, "app_pubsub_publish_total_count", "topic", "test")
 		mockMetrics.EXPECT().IncrementCounter(ctx, "app_pubsub_publish_success_count", "topic", "test")
 
-		err = k.Publish(ctx, "test", []byte(`hello`))
+		err = k.Publish(ctx, pubsub.PublishRequest{Topic: "test", Message: []byte(`hello`)})
 	})
 
 	assert.Nil(t, err)

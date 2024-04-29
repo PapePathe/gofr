@@ -42,7 +42,7 @@ func (s mockSubscriber) Health() datasource.Health {
 	return datasource.Health{}
 }
 
-func (s mockSubscriber) Publish(_ context.Context, _ string, _ []byte) error {
+func (s mockSubscriber) Publish(_ context.Context, _ pubsub.PublishRequest) error {
 	return nil
 }
 

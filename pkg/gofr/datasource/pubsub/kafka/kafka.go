@@ -39,6 +39,8 @@ type kafkaClient struct {
 	metrics Metrics
 }
 
+var _ pubsub.Publisher = (*kafkaClient)(nil)
+
 //nolint:revive // We do not want anyone using the client without initialization steps.
 func New(conf Config, logger pubsub.Logger, metrics Metrics) *kafkaClient {
 	err := validateConfigs(conf)
@@ -91,17 +93,17 @@ func validateConfigs(conf Config) error {
 	return nil
 }
 
-func (k *kafkaClient) Publish(ctx context.Context, topic string, message []byte) error {
-	k.metrics.IncrementCounter(ctx, "app_pubsub_publish_total_count", "topic", topic)
+func (k *kafkaClient) Publish(ctx context.Context, message pubsub.PublishRequest) error {
+	k.metrics.IncrementCounter(ctx, "app_pubsub_publish_total_count", "topic", message.Topic)
 
-	if k.writer == nil || topic == "" {
+	if k.writer == nil || message.Topic == "" {
 		return errPublisherNotConfigured
 	}
 
 	err := k.writer.WriteMessages(ctx,
 		kafka.Message{
-			Topic: topic,
-			Value: message,
+			Topic: message.Topic,
+			Value: message.Message,
 			Time:  time.Now(),
 		},
 	)
@@ -111,9 +113,9 @@ func (k *kafkaClient) Publish(ctx context.Context, topic string, message []byte)
 		return err
 	}
 
-	k.logger.Debugf("published kafka message %v on topic %v", string(message), topic)
+	k.logger.Debugf("published kafka message %v on topic %v", string(message.Message), message.Topic)
 
-	k.metrics.IncrementCounter(ctx, "app_pubsub_publish_success_count", "topic", topic)
+	k.metrics.IncrementCounter(ctx, "app_pubsub_publish_success_count", "topic", message.Topic)
 
 	return nil
 }
